@@ -1,0 +1,168 @@
+---
+
+  - pacman:
+      update_cache: yes
+      upgrade: yes
+
+  - package:
+      name: "vim"
+      state: absent
+
+  - name: Install base
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - python3
+      - gvim
+      - xdg-user-dirs
+      - gnome-keyring
+      - alacritty
+      - ttf-inconsolata
+      - breeze-gtk
+      - otf-font-awesome
+      - qt5-base
+      - qt5ct
+      - i3status
+      - evolution
+      - acpi
+      - blueman
+      - pacman-contrib
+
+  - name: Install Sway
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - sway
+      - waybar
+      - mutter
+      - wl-clipboard
+      - wayland-protocols
+      - kanshi
+      - grim
+      - slurp
+      - swayidle
+      - swaylock
+      - wlroots
+      - qt5-wayland
+      - egl-wayland
+      - xorg-server-xwayland
+      - mako
+      # - redshift-wayland-git
+      # Devel
+      - mercurial
+      - ninja
+      - meson
+      - cmake
+      - pkg-config
+      - gtk3
+      - libinput
+
+  - name: Install Net
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - wireshark-qt
+      - nmap
+      - sshfs
+      - samba
+      - openbsd-netcat
+      - autossh
+      - freerdp
+      - fwknop
+      - wireguard-tools
+      - wget
+      - wpa_supplicant
+      - vnstat
+      - traceroute
+      - bluez
+      - bluez-utils
+      - minicom
+      - gvfs-smb
+      - openvpn
+      - filezilla
+ 
+  - name: Install Media
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - vivaldi
+      - pulseaudio
+      - pulseaudio-bluetooth
+      - pulseaudio-alsa
+      - pavucontrol
+      - pasystray
+      - zathura
+      - zathura-pdf-poppler
+      - zathura-ps
+      - sxiv
+      - vlc
+      - mpc
+      - ncmpcpp
+      - texlive-latexextra
+      - libreoffice
+      - obs-studio
+      - xournalpp
+    
+  - name: Install Other
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - p7zip
+      - unrar
+      - htop
+      - dos2unix
+      - expac
+      - pacutils
+      # Usb & GPG
+      - usbutils
+      - libusb-compat
+      - ccid
+      - bc
+      - fwupd
+
+  - user:
+      name: aur_builder
+      group: wheel
+
+  - lineinfile:
+      path: /etc/sudoers.d/11-install-aur_builder
+      line: 'aur_builder ALL=(ALL) NOPASSWD: /usr/bin/pacman'
+      create: yes
+
+  - aur: 
+      name: yay
+      use: makepkg
+    become_user: aur_builder 
+
+  - aur:
+      name: "{{ item }}"
+      use: yay
+      aur_only: true
+    with_items:
+      - clipman
+      - yaru-icon-theme
+      - yaru-gtk-theme
+      - yaru-gnome-shell-theme
+      - redshift-wlr-gamma-control-git
+      - mons
+      - tmux-bash-completion
+      - quickserve
+      - yubikey-personalization-gui
+      - wacom-utility
+      - elogind
+      - wev
+    become_user: aur_builder 
+
+  - pip:
+      name:
+        - azure-cli
+        - docker-compose
+        - ansible
+      extra_args: --user
+    become_user: "{{ user_name }}"
+

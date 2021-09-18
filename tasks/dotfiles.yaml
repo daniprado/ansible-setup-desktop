@@ -1,0 +1,34 @@
+---
+
+  - name: Install dependencies
+    become: yes
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - tmux
+      - zsh
+      - zsh-completions
+      - ripgrep
+      - fd
+      - tmate
+
+  - name: Clone dotfiles
+    git:
+      repo: "{{ dotfiles_url }}"
+      dest: "{{ dotfiles_path }}"
+
+  - name: Link dotfiles
+    command: "./install.sh"
+    args:
+      chdir: "{{ dotfiles_path }}"
+
+  - name: Authorize SSH key
+    authorized_key:
+      user: "{{ user_name }}"
+      key: "{{ lookup('file', key_ssh_file) }}"
+      state: present
+
+  - name: Import GPG key
+    command: "gpg --import {{ key_gpg_file }}"
+

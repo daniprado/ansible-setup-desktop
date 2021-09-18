@@ -1,0 +1,184 @@
+---
+
+  - name: Add needed APT repos
+    apt_repo:
+      repo: "{{ item }}"
+      state: present
+    with_items:
+      - "ppa:mmstick76/alacritty"
+      - "ppa:regolith-linux/release"
+
+  - name: Update packages
+    apt:
+      update_cache: yes
+      upgrade: dist
+
+  - name: Install base
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - python-is-python3
+      - vim-gtk3
+      - xdg-user-dirs
+      - cryptsetup
+      - secure-delete
+      - gnome-keyring
+      - alacritty
+      - ttf-inconsolata
+      - breeze-gtk
+      - otf-font-awesome
+      - qt5-base
+      - blueman
+
+  - name: Install GPG
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - gnupg2
+      - gnupg-agent
+      - pinentry-qt
+      - pinentry-curses
+      - qt5ct
+      - scdaemon
+      - pcscd
+      - yubikey-personalization
+      - pcsc-tools
+
+  - name: Install sway
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - sway
+      - waybar
+      - mutter
+      - indicator-session
+      - wl-clipboard
+      - wayland-protocols
+      - kanshi
+      - grim
+      - slurp
+      - swayidle
+      - swaylock
+      - wlroots
+      - qtwayland5
+      - egl-wayland
+      - xwayland
+      # Theme
+      - yaru-theme-gtk
+      - yaru-theme-icon
+      - yaru-theme-gnome-shell
+      # Devel
+      - libwayland-dev
+      - hgsubversion
+      - ninja-build
+      - meson
+      - cmake
+      - pkg-config
+      - libgtk-3-dev
+      - libelogind-dev
+      - libobs-dev
+      - libinput-dev
+      - wev
+
+  - name: Install Net
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - wireshark-qt
+      - nmap
+      - sshfs
+      - samba
+      - openbsd-netcat
+      - autossh
+      - freerdp
+      - fwknop-client
+      - wireguard
+      - wireguard-tools
+      - filezilla
+ 
+  - name: Install Media
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - zathura
+      - zathura-pdf-poppler
+      - zathura-ps
+      - sxiv
+      - libreoffice
+      - xf86-input-wacom
+      - obs-studio
+      - vlc
+    
+  - name: Install Other
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - p7zip
+      - htop
+      - dos2unix
+      - usbutils
+      - libusb-compat
+      - geoclue-2.0
+
+  - name: Install snaps
+    snap:
+      name:
+        - greenclip-mhcerri
+
+  - name: Install python packages
+    pip:
+      name:
+        - docker-compose
+        - ansible
+      extra_args: --user
+    become_user: "{{ user_name }}"
+
+  - name: Install mako
+    block:
+      - hg:
+          repo: "{{ mako_url }}"
+          dest: "{{ temp_path }}/mako"
+          revision: "{{ mako_version }}"
+          clone: yes
+      - command: meson build && ninja -C build install
+        args:
+          chdir: "{{ temp_path }}/mako"
+      - file:
+          src: "{{ temp_path }}/mako/build/mako"
+          dest: "~/.local/bin/mako"
+          owner: "{{ user_name }}"
+          group: "{{ user_name }}"
+
+  - name: Install wshowkeys
+    block:
+      - hg:
+          repo: "{{ wshowkeys_url }}"
+          dest: "{{ temp_path }}/wshowkeys"
+          clone: yes
+      - command: ninja -C build install
+        args:
+          chdir: "{{ temp_path }}/wshowkeys"
+      - command: chmod a+s /usr/local/bin/wshowkeys
+
+  - name: Install wlrobs
+    block:
+      - hg:
+          repo: "{{ wlrobs_url }}"
+          dest: "{{ temp_path }}/wlrobs"
+          clone: yes
+      - command: meson build && ninja -C build
+        args:
+          chdir: "{{ temp_path }}/wlrobs"
+      - file:
+          src: "{{ temp_path }}/wlrobs/build/libwlrobs.so"
+          dest: "~/.config/obs-studio/plugins/wlrobs/bin/64bit/libwlrobs.so"
+          owner: "{{ user_name }}"
+          group: "{{ user_name }}"
+
+

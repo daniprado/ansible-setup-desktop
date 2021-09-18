@@ -1,0 +1,115 @@
+---
+
+  - name: Copy default user folders
+    copy:
+      src: "user-dirs.defaults"
+      dest: "/etc/xdg/user-dirs.defaults"
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Copy greenclip config
+    copy:
+      src: "greenclip.service"
+      dest: "/usr/lib/systemd/user/greenclip.service"
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Copy keyboard config
+    copy:
+      src: "00-keyboard.conf"
+      dest: "/etc/X11/xorg.conf.d/00-keyboard.conf"
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Enable pcscd service
+    systemd:
+      name: pcscd
+      state: started
+      enabled: yes
+
+  - name: Enable clipboard service
+    systemd:
+      name: greenclip
+      daemon_reload: yes
+      state: started
+      scope: user
+    become_user: "{{ user_name }}"
+
+  - name: Create link for TEMP
+    file:
+      src: "{{ temp_path }}"
+      dest: "{{ home_path }}/temp"
+      owner: "{{ user_name }}"
+      group: "{{ user_name }}"
+      state: link
+
+  - name: Create screenshot directory
+    file:
+      path: "~/Media/Pictures/Screenshot"
+      owner: "{{ user_name }}"
+      group: "{{ user_name }}"
+      state: directory
+      mode: '0755'
+
+  - block:
+      - name: Add user to group video
+        user:
+          name: "{{ user_name }}"
+          groups: video
+          append: yes
+
+      - name: dunno
+        command: dbus-launch gsettings reset org.gnome.clocks world-clocks
+    when: ansible_facts['os_family'] == "Debian"
+
+  - block:
+      - name: Tweak Gnome keyring config
+        lineinfile:
+          path: "/etc/pam.d/login"
+          line: "{{ item.line }}"
+          insertafter: "{{ item.after }}"
+          state: present
+        with_items:
+          - { line: "auth       optional     pam_gnome_keyring.so", after: "^auth .*$" }
+          - { line: "session    optional     pam_gnome_keyring.so auto_start", after: "^session .*$" }
+
+      - name: Tweak systemd config
+        lineinfile:
+          path: "/etc/systemd/system.conf"
+          regex: "{{ item.regex }}"
+          line: "{{ item.line }}"
+        with_items:
+          - { regex: "^#DefaultStartLimitIntervalSec=(.*)s$", line: "DefaultStartLimitIntervalSec=20s" }
+          - { regex: "^#DefaultStartLimitBurst=(.*)$", line: "DefaultStartLimitBurst=10" }
+
+      - name: Tweak bluetooth config
+        lineinfile:
+          path: "/etc/bluetooth/main.conf"
+          regex: "{{ item.regex }}"
+          line: "{{ item.line }}"
+        with_items:
+          - { regex: "^#AutoEnable=true$", line: "AutoEnable=true" }
+
+      - name: Tweak bluetooth config
+        lineinfile:
+          path: "/etc/pulse/default.pa"
+          line: "load-module module-switch-on-connect"
+          state: present
+
+      - name: Enable bluetooth service
+        systemd:
+          name: bluetooth
+          state: started
+          enabled: yes
+
+      - name: Enable cronie service
+        systemd:
+          name: cronie
+          state: started
+          enabled: yes
+    when: ansible_facts['os_family'] == "Archlinux"
+
+

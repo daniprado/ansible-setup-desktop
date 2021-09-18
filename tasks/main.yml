@@ -1,0 +1,32 @@
+---
+
+  - name: Get user data
+    user:
+      name: "{{ user_name }}"
+      state: present
+    register: "user_data"
+
+  - set_fact:
+      user_uid: "{{ user_data.uid }}"
+      home_path: "{{ user_data.home }}"
+  - set_fact:
+      dotfiles_path: "{{ home_path }}/dotfiles"
+      temp_path: "/run/user/{{ user_uid }}"
+  - set_fact:
+      key_ssh_file: "{{ dotfiles_path }}/key/id_rsa.pub"
+      key_gpg_file: "{{ dotfiles_path }}/key/gpg.asc"
+
+
+  - include: packages_ubuntu.yaml
+    become: yes
+    when: ansible_facts['os_family'] == "Debian"
+
+  - include: packages_arch.yaml
+    become: yes
+    when: ansible_facts['os_family'] == "Archlinux"
+
+  - include: config.yaml
+    become: yes
+
+  - include: dotfiles.yaml
+

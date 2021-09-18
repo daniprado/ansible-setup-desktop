@@ -1,0 +1,12 @@
+---
+
+user_name: "daniprado"
+dotfiles_url: "https://github.com/daniprado/dotfiles.git"
+
+exa_url: "https://github.com/ogham/exa/releases/download/v0.10.1/exa-linux-x86_64-0.10.1.zip"
+bat_url: "https://github.com/sharkdp/bat/releases/download/v0.18.3/bat-v0.18.3-x86_64-unknown-linux-gnu.tar.gz"
+mako_url: "https://github.com/emersion/mako.git"
+mako_version: "v1.6"
+wlrobs_url: "https://hg.sr.ht/~scoopta/wlrobs"
+wshowkeys_url: "https://git.sr.ht/~sircmpwn/wshowkeys"
+

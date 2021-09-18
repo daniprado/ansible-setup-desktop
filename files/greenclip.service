@@ -1,0 +1,13 @@
+[Unit]
+Description=Greenclip agent
+After=display-manager.service
+
+[Service]
+Type=simple
+ExecStart=greenclip daemon
+Restart=always
+StartLimitBurst=0
+
+[Install]
+WantedBy=default.target
+
